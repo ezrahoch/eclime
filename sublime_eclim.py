@@ -9,6 +9,7 @@ import subprocess
 import re
 import json
 import linecache
+import os
 
 eclim_executable = "~/eclipse/eclim"
 
@@ -250,11 +251,25 @@ def to_proposals(completions):
                 proposals.extend(props)
         return proposals
 
+class LinterRegion(object):
+    def __init__(self, line, column, message):
+        self.line = int(line)-1
+        self.column = int(column)
+        self.message = message
+
+    def region(self, view):
+        return view.word(view.text_point(self.line, self.column))
+
+    def __repr__(self):
+        return "LinterRegion: %s %s %s" % (self.line, self.column, self.message)
+
+linting = {}
+# last_proposals = []
+# in_background = False
 class SublimeEclimAutoComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
         # if (len(prefix) <= 2):
         #     return []
-
 
         filename = get_file_name(view)
         print (filename)
@@ -285,9 +300,57 @@ class SublimeEclimAutoComplete(sublime_plugin.EventListener):
         seen = set()
         seen_add = seen.add
         return [ (p.display, p.insert) for p in proposals if not (p.insert in seen or seen_add(p.insert))]
-        # return [(p.display, p.insert) for p in proposals]
+        # return [(p.display, p.insert) for p in last_proposals]
+
+    # def on_modified_async(self, view):
+    #     global in_background
+    #     global last_proposals
+    #     if (in_background):
+    #         return
+
+    #     filename = get_file_name(view)
+    #     print (filename)
+
+    #     if (not filename.endswith('.c') and not filename.endswith('.h')):
+    #         return
+
+    #     pt = view.sel()[0].begin()
+    #     print (pt)
+    #     if ('comment' in view.scope_name(pt)):
+    #         return
+
+    #     in_background = True
+
+    #     view.run_command("save")
+
+    #     offset = offset_of_location(view, pt)
+
+    #     cmd_output = run_eclim(['-command', 'c_complete',
+    #                             '-p', 'elfs',
+    #                             '-f', filename,
+    #                             '-e', 'utf-8',
+    #                             '-l', 'compact',
+    #                             '-o', offset
+    #                            ])
+
+    #     proposals = to_proposals(cmd_output)
+    #     print(proposals)
+
+    #     last_proposals = proposals
+
+    #     in_background = False
+    #     view.run_command("auto_complete")
+
 
     def on_post_save_async(self, view):
+        if self.is_scratch(view):
+            return
+
+        view = self.get_focused_view_id(view)
+
+        if view is None:
+            return
+
         filename = get_file_name(view)
         print (filename)
 
@@ -300,8 +363,88 @@ class SublimeEclimAutoComplete(sublime_plugin.EventListener):
                                '-v'
                             ])
 
-        regions = [view.word(view.text_point(int(issue['line'])-1, int(issue['column']))) for issue in issues]
-        print (regions)
-        view.add_regions('issues', regions, 'keyword',
-            flags=sublime.DRAW_NO_FILL)
+        linter_regions = [LinterRegion(issue['line'], issue['column'], issue['message']) for issue in issues];
 
+        regions = [lr.region(view) for lr in linter_regions]
+        view.add_regions('issues', regions, 'keyword', flags=sublime.DRAW_NO_FILL)
+
+        linting[view.id()] = {}
+        for lr in linter_regions:
+            linting[view.id()][lr.line] = lr
+
+        self.on_selection_modified_async(view)
+
+    def get_focused_view_id(self, view):
+        """
+        Return the focused view which shares view's buffer.
+        When updating the status, we want to make sure we get
+        the selection of the focused view, since multiple views
+        into the same buffer may be open.
+        """
+        active_view = view.window().active_view()
+
+        for view in view.window().views():
+            if view == active_view:
+                return view
+
+    def is_scratch(self, view):
+        """
+        Return whether a view is effectively scratch.
+        There is a bug (or feature) in the current ST3 where the Find panel
+        is not marked scratch but has no window.
+        There is also a bug where settings files opened from within .sublime-package
+        files are not marked scratch during the initial on_modified event, so we have
+        to check that a view with a filename actually exists on disk if the file
+        being opened is in the Sublime Text packages directory.
+        """
+
+        if view.is_scratch() or view.is_read_only() or view.window() is None or view.settings().get("repl") is not None:
+            return True
+        elif (
+            view.file_name() and
+            view.file_name().startswith(sublime.packages_path() + os.path.sep) and
+            not os.path.exists(view.file_name())
+        ):
+            return True
+        else:
+            return False
+
+    def on_close(self, view):
+        """Called after view is closed."""
+
+        if self.is_scratch(view):
+            return
+
+        vid = view.id()
+
+        if vid in linting:
+            del linting[vid];
+
+    def on_selection_modified_async(self, view):
+        if self.is_scratch(view):
+            return
+
+        view = self.get_focused_view_id(view)
+
+        if view is None:
+            return
+
+        vid = view.id()
+
+        # Get the line number of the first line of the first selection.
+        try:
+            lineno = view.rowcol(view.sel()[0].begin())[0]
+        except IndexError:
+            lineno = -1
+
+        # print (lineno)
+
+        if vid in linting:
+            # print(linting)
+            errors = linting[vid]
+
+            if errors:
+                if lineno in errors:
+                    view.set_status('subclimelinter', '[[[%s]]]' % (errors[lineno].message))
+                    return
+        view.erase_status('subclimelinter')
