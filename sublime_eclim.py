@@ -11,7 +11,7 @@ import json
 import linecache
 import os
 
-eclim_executable = "~/eclipse/eclim"
+eclim_executable = "/local/local/.eclipse/org.eclipse.platform_4.4.1_1473617060_linux_gtk_x86_64/eclim"
 
 def show_error_msg(msg):
     sublime.error_message(msg)
@@ -59,8 +59,11 @@ def get_file_name(view):
 
 class CompletionProposal(object):
     def __init__(self, name, insert=None, type="None"):
-        split = name.split(" ")
-        self.name = "%s\t%s" % (split[0], " ".join(split[1:]))
+        split = name.replace(",", ", ").split()
+        if len(split) < 2:
+            self.name = name
+        else:
+            self.name = "%s\t%s" % (split[0], " ".join(split[1:]))
         self.display = self.name
         if insert:
             self.insert = insert
@@ -223,8 +226,9 @@ def offset_of_location(view, location):
         cr_size = text.count('\n')
     return len(text.encode('utf-8')) + cr_size
 
-def to_proposals(completions):
-        proposals = [CompletionProposal(p['menu'], p['completion']) for p in completions]
+def to_proposals(completions, with_params):
+#        proposals = [CompletionProposal(p['menu'], p['completion']) for p in completions]
+        proposals = []
 
         # newer versions of Eclim package the list of completions in a dict
         if isinstance(completions, dict):
@@ -244,7 +248,10 @@ def to_proposals(completions):
                                             for i, s in
                                             zip(range(1, len(params) + 1), params)
                                             ])
-                        insert = c['completion'] + insert + ")"
+                        if with_params:
+                            insert = c['completion'] + insert + ")"
+                        else:
+                            insert = c['completion']
                         props.append(CompletionProposal(variants[idx], insert))
                     else:
                         props.append(CompletionProposal(variants[idx], c['completion']))
@@ -268,6 +275,8 @@ linting = {}
 # in_background = False
 class SublimeEclimAutoComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
+        if (len(prefix) < 1):
+            return []
         # if (len(prefix) <= 2):
         #     return []
 
@@ -293,13 +302,16 @@ class SublimeEclimAutoComplete(sublime_plugin.EventListener):
                                 '-o', offset
                                ])
 
-        proposals = to_proposals(cmd_output)
+        if view.word(locations[0]).size() == len(prefix):
+            proposals = to_proposals(cmd_output, True)
+        else:
+            proposals = to_proposals(cmd_output, False)
         print(proposals)
 
         # Make Unique
         seen = set()
         seen_add = seen.add
-        return [ (p.display, p.insert) for p in proposals if not (p.insert in seen or seen_add(p.insert))]
+        return [ (p.display, p.insert) for p in proposals if not (p.display in seen or seen_add(p.display))]
         # return [(p.display, p.insert) for p in last_proposals]
 
     # def on_modified_async(self, view):
