@@ -11,13 +11,24 @@ import json
 import linecache
 import os
 
-eclim_executable = "/local/local/.eclipse/org.eclipse.platform_4.4.1_1473617060_linux_gtk_x86_64/eclim"
+eclim_executables = ["/local/local/.eclipse/org.eclipse.platform_4.4.1_1473617060_linux_gtk_x86_64/eclim",
+                     "/Users/ezra/eclipse/eclim"]
 
 def show_error_msg(msg):
     sublime.error_message(msg)
 
 def run_eclim(args_list):
     args_str = " ".join([str(s) for s in args_list])
+
+    eclim_executable = ""
+    for filename in eclim_executables:
+        if (os.path.isfile(filename)):
+            eclim_executable = filename
+
+    if (eclim_executable == ""):
+        show_error_msg("Failed to find eclim")
+        return None
+
     cmd = "%s %s" % (eclim_executable, args_str)
     print ("Running: %s" % (cmd))
 
@@ -277,8 +288,6 @@ class SublimeEclimAutoComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
         if (len(prefix) < 1):
             return []
-        # if (len(prefix) <= 2):
-        #     return []
 
         filename = get_file_name(view)
         print (filename)
