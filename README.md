@@ -1,2 +1,2 @@
 # eclime
-eclim for sublime
+An eclim plugin for sublime
