@@ -255,13 +255,17 @@ class SublimeEclimAutoComplete(sublime_plugin.EventListener):
         # if (len(prefix) <= 2):
         #     return []
 
-        view.run_command("save")
 
         filename = get_file_name(view)
         print (filename)
 
         if (not filename.endswith('.c') and not filename.endswith('.h')):
             return
+
+        if ('comment' in view.scope_name(locations[0])):
+            return
+
+        view.run_command("save")
 
         offset = offset_of_location(view, locations[0])
 
