@@ -286,8 +286,10 @@ linting = {}
 # in_background = False
 class SublimeEclimAutoComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
-        if (len(prefix) < 1):
-            return []
+        # Avoid code completion on empty lines
+        line_text = view.substr(view.line(locations[0])).strip()
+        if (len(line_text) == 0):
+            return
 
         filename = get_file_name(view)
         print (filename)
