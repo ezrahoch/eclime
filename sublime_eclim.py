@@ -286,9 +286,14 @@ linting = {}
 # in_background = False
 class SublimeEclimAutoComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
-        # Avoid code completion on empty lines
+        # Avoid code completion on short lines
         line_text = view.substr(view.line(locations[0])).strip()
-        if (len(line_text) == 0):
+        if (len(line_text) < 3):
+            return
+
+        # Avoid code completion after ';' or after '{' (such code completions will take a long time)
+        prev_char = view.substr(locations[0]-1)
+        if (prev_char == ";" or prev_char == "{"):
             return
 
         filename = get_file_name(view)
