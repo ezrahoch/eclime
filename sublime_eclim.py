@@ -98,7 +98,7 @@ class SublimeEclimFollowCommand(sublime_plugin.TextCommand):
 
         location = run_eclim(['-command', 'c_search',
                               '-n', 'elfs',
-                              '-f', filename,
+                              '-f', '"' + filename + '"',
                               '-e', 'utf-8',
                               '-l', word.size(),
                               '-o', offset
@@ -205,7 +205,7 @@ class SublimeEclimReferencesCommand(SublimeEclimGoToLocationBase):
 
         locations = run_eclim(['-command', 'c_search',
                                '-n', 'elfs',
-                               '-f', filename,
+                               '-f', '"' + filename + '"',
                                '-e', 'utf-8',
                                '-l', word.size(),
                                '-o', offset,
@@ -312,7 +312,7 @@ class SublimeEclimAutoComplete(sublime_plugin.EventListener):
 
         cmd_output = run_eclim(['-command', 'c_complete',
                                 '-p', 'elfs',
-                                '-f', filename,
+                                '-f', '"' + filename + '"',
                                 '-e', 'utf-8',
                                 '-l', 'compact',
                                 '-o', offset
@@ -387,7 +387,7 @@ class SublimeEclimAutoComplete(sublime_plugin.EventListener):
 
         issues = run_eclim(['-command', 'c_src_update',
                                '-p', 'elfs',
-                               '-f', filename,
+                               '-f', '"' + filename + '"',
                                '-v'
                             ])
 
