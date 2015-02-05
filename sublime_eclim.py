@@ -246,7 +246,10 @@ def to_proposals(completions, with_params):
             completions = completions['completions']
         for c in completions:
             if not "<br/>" in c['info']:  # no overloads
-                proposals.append(CompletionProposal(c['info'], c['completion']))
+                if len(c['info']) < len(c['completion']):
+                    proposals.append(CompletionProposal(c['completion'], c['completion']))
+                else:
+                    proposals.append(CompletionProposal(c['info'], c['completion']))
             else:
                 variants = c['info'].split("<br/>")
                 param_lists = [re.search(r'\((.*)\)', v) for v in variants]
