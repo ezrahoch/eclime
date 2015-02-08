@@ -17,7 +17,7 @@ eclim_executables = ["/local/local/.eclipse/org.eclipse.platform_4.4.1_147361706
 def show_error_msg(msg):
     sublime.error_message(msg)
 
-def run_eclim(args_list):
+def run_eclim(args_list, ignore_errors=False):
     args_str = " ".join([str(s) for s in args_list])
 
     eclim_executable = ""
@@ -38,11 +38,13 @@ def run_eclim(args_list):
     err = err.decode('utf-8')
 
     if err or "Connection refused" in out:
-        show_error_msg(err)
+        if not ignore_errors:
+            show_error_msg(err)
         return None
 
     if (not out.startswith('{') and not out.startswith('[')):
-        show_error_msg(out)
+        if not ignore_errors:
+            show_error_msg(out)
         return None
 
     result = json.loads(out)
@@ -87,7 +89,8 @@ class CompletionProposal(object):
 
 class SublimeEclimFollowCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        self.view.run_command("save")
+        if not self.view.is_read_only() and self.view.is_dirty():
+            self.view.run_command("save")
 
         filename = get_file_name(self.view)
         print (filename)
@@ -135,6 +138,10 @@ class SublimeEclimGoToLocationBase(sublime_plugin.TextCommand):
         self.previous_file = get_file_name(self.view)
         self.locations = locations
 
+    def try_save(self, view):
+        if not view.is_read_only() and view.is_dirty():
+            view.run_command("save")
+
 
 class SublimeEclimTreeCommand(SublimeEclimGoToLocationBase):
     def get_flc(self, loc):
@@ -159,7 +166,7 @@ class SublimeEclimTreeCommand(SublimeEclimGoToLocationBase):
         return result
 
     def run(self, edit):
-        self.view.run_command("save")
+        self.try_save(self.view)
 
         filename = get_file_name(self.view)
         print (filename)
@@ -194,7 +201,7 @@ class SublimeEclimReferencesCommand(SublimeEclimGoToLocationBase):
         return loc['filename'], loc['line'], loc['column']
 
     def run(self, edit):
-        self.view.run_command("save")
+        self.try_save(self.view)
 
         filename = get_file_name(self.view)
         print (filename)
@@ -392,7 +399,7 @@ class SublimeEclimAutoComplete(sublime_plugin.EventListener):
                                '-p', 'elfs',
                                '-f', '"' + filename + '"',
                                '-v'
-                            ])
+                            ], True)
 
         linter_regions = [LinterRegion(issue['line'], issue['column'], issue['message']) for issue in issues];
 
