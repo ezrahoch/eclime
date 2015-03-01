@@ -13,6 +13,16 @@ import os
 
 eclim_executables = ["/local/local/.eclipse/org.eclipse.platform_4.4.1_1473617060_linux_gtk_x86_64/eclim",
                      "/Users/ezra/eclipse/eclim"]
+proposal_replaces = [["IO_Capability_DO_NOT_USE_T io_capability_DO_NOT_USE, EThread_CtxSwitchingCapability_DO_NOT_USE_T ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
+                     ["IO_Capability_DO_NOT_USE_T io_capability_DO_NOT_USE,EThread_CtxSwitchingCapability_DO_NOT_USE_T ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
+                     ["EThread_CtxSwitchingCapability_DO_NOT_USE_T ethread_ctx_switching_capability_DO_NOT_USE", "CTX_SWITCH"],
+                     ["IO_Capability_DO_NOT_USE_T _io_capability_DO_NOT_USE, EThread_CtxSwitchingCapability_DO_NOT_USE_T _ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
+                     ["IO_Capability_DO_NOT_USE_T _io_capability_DO_NOT_USE,EThread_CtxSwitchingCapability_DO_NOT_USE_T _ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
+                     ["IO_Capability_DO_NOT_USE_T _io_capability_DO_NOT_USE, CTX_SWITCH", "IO_CTX_SWITCH"],
+                     ["IO_Capability_DO_NOT_USE_T _io_capability_DO_NOT_USE,CTX_SWITCH", "IO_CTX_SWITCH"],
+                     ["IO_Capability_DO_NOT_USE_T io_capability_DO_NOT_USE, EThread_CtxSwitchingCapability_DO_NOT_USE_T _ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
+                     ["IO_Capability_DO_NOT_USE_T io_capability_DO_NOT_USE,EThread_CtxSwitchingCapability_DO_NOT_USE_T _ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
+                     ["EThread_CtxSwitchingCapability_DO_NOT_USE_T _ethread_ctx_switching_capability_DO_NOT_USE", "CTX_SWITCH"]]
 
 def show_error_msg(msg):
     sublime.error_message(msg)
@@ -244,6 +254,12 @@ def offset_of_location(view, location):
         cr_size = text.count('\n')
     return len(text.encode('utf-8')) + cr_size
 
+def replace_proposal(proposal):
+    res = proposal
+    for rep in proposal_replaces:
+        res = res.replace(rep[0], rep[1])
+    return res
+
 def to_proposals(completions, with_params):
 #        proposals = [CompletionProposal(p['menu'], p['completion']) for p in completions]
         proposals = []
@@ -264,6 +280,7 @@ def to_proposals(completions, with_params):
                 props = []
                 for idx, pl in enumerate(param_lists):
                     if pl:
+                        pl = replace_proposal(pl)
                         params = [par for par in pl.split(", ")] # par..split(" ")[-1]
                         insert = ", ".join(["${%i:%s}" % (i, s)
                                             for i, s in
@@ -273,7 +290,8 @@ def to_proposals(completions, with_params):
                             insert = c['completion'] + insert + ")"
                         else:
                             insert = c['completion']
-                        props.append(CompletionProposal(variants[idx], insert))
+                        display = replace_proposal(variants[idx])
+                        props.append(CompletionProposal(display, insert))
                     else:
                         props.append(CompletionProposal(variants[idx], c['completion']))
                 proposals.extend(props)
