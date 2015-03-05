@@ -319,9 +319,9 @@ class SublimeEclimAutoComplete(sublime_plugin.EventListener):
         if (len(line_text) < 3):
             return
 
-        # Avoid code completion after ';' or after '{' (such code completions will take a long time)
+        # Avoid code completion after ';','{' or ']' (such code completions will take a long time)
         prev_char = view.substr(locations[0]-1)
-        if (prev_char == ";" or prev_char == "{"):
+        if (prev_char == ";" or prev_char == "{" or prev_char == "]"):
             return
 
         filename = get_file_name(view)
