@@ -147,7 +147,7 @@ class SublimeEclimGoToLocationBase(sublime_plugin.TextCommand):
     def init_locations(self, locations):
         self.sel = self.view.rowcol(self.view.sel()[0].a)
         self.previous_file = get_file_name(self.view)
-        self.locations = locations
+        self.locations = [l for l in reversed(locations)]
 
     def try_save(self, view):
         if not view.is_read_only() and view.is_dirty():
