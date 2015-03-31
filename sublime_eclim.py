@@ -98,32 +98,6 @@ class CompletionProposal(object):
     def __repr__(self):
         return "CompletionProposal: %s %s" % (self.name, self.insert)
 
-class SublimeEclimFollowCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        if not self.view.is_read_only() and self.view.is_dirty():
-            self.view.run_command("save")
-
-        filename = get_file_name(self.view)
-        print (filename)
-
-        pos = self.view.sel()[0]
-        word = self.view.word(pos)
-        offset = offset_of_location(self.view, word.a)
-
-        location = run_eclim(['-command', 'c_search',
-                              '-n', 'elfs',
-                              '-f', '"' + filename + '"',
-                              '-e', 'utf-8',
-                              '-l', word.size(),
-                              '-o', offset
-                             ])
-
-        if (len(location) == 0):
-            return
-
-        window = sublime.active_window()
-        window.open_file("%s:%s:%s" % (location[0]['filename'], location[0]['line'], location[0]['column']), sublime.ENCODED_POSITION)
-
 class SublimeEclimGoToLocationBase(sublime_plugin.TextCommand):
     def go_to_location(self, loc, transient):
         f, l, c = self.get_flc(loc)
@@ -153,6 +127,31 @@ class SublimeEclimGoToLocationBase(sublime_plugin.TextCommand):
         if not view.is_read_only() and view.is_dirty():
             view.run_command("save")
 
+class SublimeEclimFollowCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        if not self.view.is_read_only() and self.view.is_dirty():
+            self.view.run_command("save")
+
+        filename = get_file_name(self.view)
+        print (filename)
+
+        pos = self.view.sel()[0]
+        word = self.view.word(pos)
+        offset = offset_of_location(self.view, word.a)
+
+        location = run_eclim(['-command', 'c_search',
+                              '-n', 'elfs',
+                              '-f', '"' + filename + '"',
+                              '-e', 'utf-8',
+                              '-l', word.size(),
+                              '-o', offset
+                             ])
+
+        if (len(location) == 0):
+            return
+
+        window = sublime.active_window()
+        window.open_file("%s:%s:%s" % (location[0]['filename'], location[0]['line'], location[0]['column']), sublime.ENCODED_POSITION)
 
 class SublimeEclimTreeCommand(SublimeEclimGoToLocationBase):
     def get_flc(self, loc):
