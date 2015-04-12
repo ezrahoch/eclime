@@ -127,10 +127,12 @@ class SublimeEclimGoToLocationBase(sublime_plugin.TextCommand):
         if not view.is_read_only() and view.is_dirty():
             view.run_command("save")
 
-class SublimeEclimFollowCommand(sublime_plugin.TextCommand):
+class SublimeEclimFollowCommand(SublimeEclimGoToLocationBase):
+    def get_flc(self, loc):
+        return loc['filename'], loc["line"], loc["column"]
+
     def run(self, edit):
-        if not self.view.is_read_only() and self.view.is_dirty():
-            self.view.run_command("save")
+        self.try_save(self.view)
 
         filename = get_file_name(self.view)
         print (filename)
@@ -139,7 +141,7 @@ class SublimeEclimFollowCommand(sublime_plugin.TextCommand):
         word = self.view.word(pos)
         offset = offset_of_location(self.view, word.a)
 
-        location = run_eclim(['-command', 'c_search',
+        locations = run_eclim(['-command', 'c_search',
                               '-n', 'elfs',
                               '-f', '"' + filename + '"',
                               '-e', 'utf-8',
@@ -147,11 +149,20 @@ class SublimeEclimFollowCommand(sublime_plugin.TextCommand):
                               '-o', offset
                              ])
 
-        if (len(location) == 0):
+        print(locations)
+
+        if (len(locations) == 0):
             return
 
-        window = sublime.active_window()
-        window.open_file("%s:%s:%s" % (location[0]['filename'], location[0]['line'], location[0]['column']), sublime.ENCODED_POSITION)
+        if (len(locations) == 1):
+            self.go_to_location(locations[0], False)
+            return
+
+        self.init_locations(locations)
+        self.view.window().show_quick_panel(
+            [["%s:%s" % (to_local_filename(l['filename']), l['line']), linecache.getline(l['filename'], l['line']).strip()] for l in self.locations],
+            self.location_selected, sublime.MONOSPACE_FONT, 0,
+            self.location_viewed)
 
 class SublimeEclimTreeCommand(SublimeEclimGoToLocationBase):
     def get_flc(self, loc):
