@@ -13,7 +13,8 @@ import os
 
 eclim_executables = ["/local/local/.eclipse/org.eclipse.platform_4.4.1_1473617060_linux_gtk_x86_64/eclim",
 		     "/opt/eclipse/eclim",
-                     "/Users/ezra/eclipse/eclim"]
+                     "/Users/ezra/eclipse/eclim",
+                     "/Users/shaiko/eclipse/eclim"]
 proposal_replaces = [["IO_Capability_DO_NOT_USE_T io_capability_DO_NOT_USE, EThread_CtxSwitchingCapability_DO_NOT_USE_T ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
                      ["IO_Capability_DO_NOT_USE_T io_capability_DO_NOT_USE,EThread_CtxSwitchingCapability_DO_NOT_USE_T ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
                      ["EThread_CtxSwitchingCapability_DO_NOT_USE_T ethread_ctx_switching_capability_DO_NOT_USE", "CTX_SWITCH"],
