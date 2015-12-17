@@ -252,10 +252,25 @@ class SublimeEclimReferencesCommand(SublimeEclimGoToLocationBase):
         else:
             #  multiple usages -> show menu
             self.init_locations(locations)
-            self.view.window().show_quick_panel(
-                [["%s:%s" % (to_local_filename(l['filename']), l['line']), linecache.getline(l['filename'], l['line']).strip()] for l in self.locations],
-                self.location_selected, sublime.MONOSPACE_FONT, 0,
-                self.location_viewed)
+
+            window = self.view.window()
+
+            view = window.get_output_panel("exec")
+            lines = ["%s:%s:13: note: %s" % (to_local_filename(l['filename']),
+                                   l['line'],
+                                   linecache.getline(l['filename'], l['line']).strip())
+                     for l in locations]
+            view.insert(edit, 0, "\n".join(lines))
+            view.sel().clear()
+            view.sel().add(view.text_point(0, 0)) # Moves cursor to beginning of text
+            window.run_command("show_panel", {"panel" : "output.exec"})
+            window.run_command("next_result")
+            return
+
+            # self.view.window().show_quick_panel(
+                # [["%s:%s" % (to_local_filename(l['filename']), l['line']), linecache.getline(l['filename'], l['line']).strip()] for l in self.locations],
+                # self.location_selected, sublime.MONOSPACE_FONT, 0,
+                # self.location_viewed)
 
 
 def offset_of_location(view, location):
