@@ -10,3 +10,7 @@ elif [ `uname` == "Darwin" ]; then
     TIMEOUT_CMD="/usr/local/bin/gtimeout"
 fi
 $TIMEOUT_CMD -k $KILL_AFTER $TIMEOUT "$CMD" "$@"
+if [ $? -eq 124 ]; then
+    echo "Timed out"
+    exit 124
+fi
