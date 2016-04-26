@@ -1,7 +1,7 @@
 #!/bin/bash
 TIMEOUT=2
 KILL_AFTER=1
-CMD="/Applications/eclipse/eclim"
+CMD="/Users/ezra/eclipse/eclim"
 if [ `uname` == "Linux" ]; then
     OS="Linux"
     TIMEOUT_CMD="timeout"
