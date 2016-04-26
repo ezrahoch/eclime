@@ -200,7 +200,7 @@ class SublimeEclimTreeCommand(SublimeEclimGoToLocationBase):
 
         locations = run_eclim(['-command', 'c_callhierarchy',
                                '-p', 'elfs',
-                               '-f', filename,
+                               '-f', '"' + filename + '"',
                                '-e', 'utf-8',
                                '-l', word.size(),
                                '-o', offset
