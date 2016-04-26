@@ -24,9 +24,14 @@ proposal_replaces = [["IO_Capability_DO_NOT_USE_T io_capability_DO_NOT_USE, EThr
                      ["EThread_CtxSwitchingCapability_DO_NOT_USE_T _ethread_ctx_switching_capability_DO_NOT_USE", "CTX_SWITCH"]]
 
 def show_error_msg(msg):
-    sublime.error_message(msg)
+    if (msg.startswith("Timed out")):
+        sublime.active_window().active_view().set_status('subclimelinter', "[[[[[TIMED OUT]]]]]")
+    else:
+        sublime.error_message(msg)
 
 def run_eclim(args_list, ignore_errors=False):
+    sublime.active_window().active_view().set_status('subclimelinter', "")
+
     args_str = " ".join([str(s) for s in args_list])
 
     eclim_executable = ""
