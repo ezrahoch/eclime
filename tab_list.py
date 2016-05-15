@@ -22,7 +22,7 @@ class SublimeImprovedTabListCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         window = sublime.active_window()
         views = filter(lambda x: not x.is_scratch(), window.views())
-        self.names = [(ntpath.basename(view.file_name()), view) for view in views]
+        self.names = [(ntpath.basename(view.file_name()), view) for view in views if view.file_name()]
         self.names = sorted(self.names, key=lambda x: x[0])
 
         index = [i for i, j in enumerate(self.names) if j[1] == window.active_view()]
