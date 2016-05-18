@@ -256,8 +256,7 @@ class SublimeEclimReferencesCommand(SublimeEclimGoToLocationBase):
             self.init_locations(locations)
 
             window = self.view.window()
-
-            view = window.get_output_panel("exec")
+            view = window.create_output_panel("exec")
             lines = ["%s:%s:13: note: %s" % (to_local_filename(l['filename']),
                                    l['line'],
                                    linecache.getline(l['filename'], l['line']).strip())
