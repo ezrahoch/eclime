@@ -43,7 +43,7 @@ def run_eclim(args_list, ignore_errors=False):
         show_error_msg("Failed to find eclim")
         return None
 
-    cmd = "%s %s" % (eclim_executable, args_str)
+    cmd = "'%s' %s" % (eclim_executable, args_str)
     print ("Running: %s" % (cmd))
 
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
