@@ -11,7 +11,8 @@ import json
 import linecache
 import os
 
-eclim_executables = ["/Users/nadavshemer/workspace/eclime/run-eclime.sh", "/Users/ezra/SublimeEclim/run-eclime.sh"]
+eclim_executables = ["/Users/nadavshemer/workspace/eclime/run-eclime.sh", "/Users/ezra/SublimeEclim/run-eclime.sh",
+                     "/Users/eliw/Library/Application Support/Sublime Text 3/Packages/eclime/run-eclime.sh"]
 proposal_replaces = [["IO_Capability_DO_NOT_USE_T io_capability_DO_NOT_USE, EThread_CtxSwitchingCapability_DO_NOT_USE_T ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
                      ["IO_Capability_DO_NOT_USE_T io_capability_DO_NOT_USE,EThread_CtxSwitchingCapability_DO_NOT_USE_T ethread_ctx_switching_capability_DO_NOT_USE", "IO_CTX_SWITCH"],
                      ["EThread_CtxSwitchingCapability_DO_NOT_USE_T ethread_ctx_switching_capability_DO_NOT_USE", "CTX_SWITCH"],
